@@ -1,0 +1,303 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		BA0794C81AFB0B45004062FD /* XcodeEditor.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BAB60E5E1AF696670069C8B1 /* XcodeEditor.framework */; settings = {ATTRIBUTES = (Required, ); }; };
+		BAB60E521AF6965D0069C8B1 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = BAB60E511AF6965D0069C8B1 /* main.m */; };
+		BAB60E631AF69ACA0069C8B1 /* OfProject.m in Sources */ = {isa = PBXBuildFile; fileRef = BAB60E621AF69ACA0069C8B1 /* OfProject.m */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		BAB60E5D1AF696670069C8B1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BAB60E581AF696670069C8B1 /* xcode-editor.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 6B3ACFE014F8A2FE00BCFE81;
+			remoteInfo = XcodeEditor;
+		};
+		BAB60E5F1AF696670069C8B1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BAB60E581AF696670069C8B1 /* xcode-editor.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 6BCED6E21A4A61DC0005596F;
+			remoteInfo = XcodeEditorTests;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		BAB60E4C1AF6965D0069C8B1 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		BA9133EC1AFA5C1700858CD9 /* notes.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = notes.txt; sourceTree = "<group>"; };
+		BAB60E4E1AF6965D0069C8B1 /* ofxcode */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = ofxcode; sourceTree = BUILT_PRODUCTS_DIR; };
+		BAB60E511AF6965D0069C8B1 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		BAB60E581AF696670069C8B1 /* xcode-editor.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "xcode-editor.xcodeproj"; path = "../XcodeEditor/xcode-editor.xcodeproj"; sourceTree = "<group>"; };
+		BAB60E621AF69ACA0069C8B1 /* OfProject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OfProject.m; sourceTree = "<group>"; };
+		BAB60E641AF69AD70069C8B1 /* OfProject.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OfProject.h; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		BAB60E4B1AF6965D0069C8B1 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BA0794C81AFB0B45004062FD /* XcodeEditor.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		BAB60E451AF6965D0069C8B1 = {
+			isa = PBXGroup;
+			children = (
+				BA9133EC1AFA5C1700858CD9 /* notes.txt */,
+				BAB60E581AF696670069C8B1 /* xcode-editor.xcodeproj */,
+				BAB60E501AF6965D0069C8B1 /* ofx */,
+				BAB60E4F1AF6965D0069C8B1 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		BAB60E4F1AF6965D0069C8B1 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				BAB60E4E1AF6965D0069C8B1 /* ofxcode */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		BAB60E501AF6965D0069C8B1 /* ofx */ = {
+			isa = PBXGroup;
+			children = (
+				BAB60E511AF6965D0069C8B1 /* main.m */,
+				BAB60E621AF69ACA0069C8B1 /* OfProject.m */,
+				BAB60E641AF69AD70069C8B1 /* OfProject.h */,
+			);
+			path = ofx;
+			sourceTree = "<group>";
+		};
+		BAB60E591AF696670069C8B1 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				BAB60E5E1AF696670069C8B1 /* XcodeEditor.framework */,
+				BAB60E601AF696670069C8B1 /* XcodeEditorTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		BAB60E4D1AF6965D0069C8B1 /* ofxcode */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BAB60E551AF6965D0069C8B1 /* Build configuration list for PBXNativeTarget "ofxcode" */;
+			buildPhases = (
+				BAB60E4A1AF6965D0069C8B1 /* Sources */,
+				BAB60E4B1AF6965D0069C8B1 /* Frameworks */,
+				BAB60E4C1AF6965D0069C8B1 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ofxcode;
+			productName = ofxcode;
+			productReference = BAB60E4E1AF6965D0069C8B1 /* ofxcode */;
+			productType = "com.apple.product-type.tool";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		BAB60E461AF6965D0069C8B1 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0620;
+				ORGANIZATIONNAME = hansi;
+				TargetAttributes = {
+					BAB60E4D1AF6965D0069C8B1 = {
+						CreatedOnToolsVersion = 6.2;
+					};
+				};
+			};
+			buildConfigurationList = BAB60E491AF6965D0069C8B1 /* Build configuration list for PBXProject "ofx" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = BAB60E451AF6965D0069C8B1;
+			productRefGroup = BAB60E4F1AF6965D0069C8B1 /* Products */;
+			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = BAB60E591AF696670069C8B1 /* Products */;
+					ProjectRef = BAB60E581AF696670069C8B1 /* xcode-editor.xcodeproj */;
+				},
+			);
+			projectRoot = "";
+			targets = (
+				BAB60E4D1AF6965D0069C8B1 /* ofxcode */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		BAB60E5E1AF696670069C8B1 /* XcodeEditor.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = XcodeEditor.framework;
+			remoteRef = BAB60E5D1AF696670069C8B1 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		BAB60E601AF696670069C8B1 /* XcodeEditorTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = XcodeEditorTests.xctest;
+			remoteRef = BAB60E5F1AF696670069C8B1 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
+
+/* Begin PBXSourcesBuildPhase section */
+		BAB60E4A1AF6965D0069C8B1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BAB60E631AF69ACA0069C8B1 /* OfProject.m in Sources */,
+				BAB60E521AF6965D0069C8B1 /* main.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		BAB60E531AF6965D0069C8B1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		BAB60E541AF6965D0069C8B1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		BAB60E561AF6965D0069C8B1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		BAB60E571AF6965D0069C8B1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		BAB60E491AF6965D0069C8B1 /* Build configuration list for PBXProject "ofx" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BAB60E531AF6965D0069C8B1 /* Debug */,
+				BAB60E541AF6965D0069C8B1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BAB60E551AF6965D0069C8B1 /* Build configuration list for PBXNativeTarget "ofxcode" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BAB60E561AF6965D0069C8B1 /* Debug */,
+				BAB60E571AF6965D0069C8B1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = BAB60E461AF6965D0069C8B1 /* Project object */;
+}

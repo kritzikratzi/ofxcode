@@ -1,0 +1,22 @@
+to get started do this:
+
+git clone git@github.com:appsquickly/XcodeEditor.git
+git clone git@github.com:kritzikratzi/ofxcode.git
+
+(the two projects should be in the same folder)
+
+changes needed in xcode-editor.xcodeproj:
+
+	XCProjectBuildConfig.h is not set to public.
+	open the project in xcode, select the file, open the properties (cmd+alt+0),
+	select "public" instead of "project" next to the target membership
+
+
+    go to the xcode-editor.xcodeproj, select the framework-target,
+    change mach-o type to static library. 
+    also disable "instrument program flow" and "generate test coverage files"
+
+
+-- random crap --
+had to add -ObjC flag for static lib compilation.
+otherwise objc categories won't get loaded. 
