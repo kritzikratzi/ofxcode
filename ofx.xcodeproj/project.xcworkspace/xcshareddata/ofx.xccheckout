@@ -6,24 +6,40 @@
 	<false/>
 	<key>IDESourceControlProjectIdentifier</key>
 	<string>41EE3C91-34CD-4FBC-A058-C0A02E56186C</string>
+	<key>IDESourceControlProjectName</key>
+	<string>ofx</string>
 	<key>IDESourceControlProjectOriginsDictionary</key>
 	<dict>
+		<key>9AA4F39E71FE30B0F7A5A555E816DEB8172C10CA</key>
+		<string>github.com:kritzikratzi/ofxcode.git</string>
 		<key>E5485595BC9B5E4164B3342838D169783ED40D72</key>
 		<string>github.com:appsquickly/XcodeEditor.git</string>
 	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>ofx.xcodeproj</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
+		<key>9AA4F39E71FE30B0F7A5A555E816DEB8172C10CA</key>
+		<string>../..</string>
 		<key>E5485595BC9B5E4164B3342838D169783ED40D72</key>
-		<string>XcodeEditor/</string>
+		<string>../../../XcodeEditor</string>
 	</dict>
 	<key>IDESourceControlProjectURL</key>
-	<string>github.com:appsquickly/XcodeEditor.git</string>
+	<string>github.com:kritzikratzi/ofxcode.git</string>
 	<key>IDESourceControlProjectVersion</key>
 	<integer>111</integer>
 	<key>IDESourceControlProjectWCCIdentifier</key>
-	<string>E5485595BC9B5E4164B3342838D169783ED40D72</string>
+	<string>9AA4F39E71FE30B0F7A5A555E816DEB8172C10CA</string>
 	<key>IDESourceControlProjectWCConfigurations</key>
 	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>9AA4F39E71FE30B0F7A5A555E816DEB8172C10CA</string>
+			<key>IDESourceControlWCCName</key>
+			<string>ofx</string>
+		</dict>
 		<dict>
 			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
 			<string>public.vcs.git</string>

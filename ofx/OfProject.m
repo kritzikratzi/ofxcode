@@ -69,16 +69,39 @@
 	
 	// =======================================
 	// 1. remove the group addons/ofxMyAddon/src
-	// 2. remove addons/ofxAddon/libs/*/include
 	// in fact, just remove it all!
 	// =======================================
 	if( addonGroup != nil ){
 		[addonGroup removeFromParentGroup];
 	}
 	
+	// ========================================
+	// 2. remove addons/ofxAddon/libs/*/include
+	// ========================================
+	for( XCTarget * target in self.project.targets ){
+		for( NSString * configName in target.configurations ){
+			XCProjectBuildConfig * config = target.configurations[configName];
+			
+			NSArray * searchPaths = [self valueAsArray:[config valueForKey:@"USER_HEADER_SEARCH_PATHS"]];
+			// do we have flags?
+			if( searchPaths.count > 0 ){
+				NSMutableArray * newSearchPaths = [[NSMutableArray alloc] init];
+				for( NSString * path in searchPaths ){
+					NSString * basePath = [NSString stringWithFormat:@"../../../addons/%@", addonName];
+					if( [path rangeOfString:basePath].length == 0 ){
+						[newSearchPaths addObject:path];
+					}
+				}
+				
+				[config addOrReplaceSetting:newSearchPaths forKey:@"USER_HEADER_SEARCH_PATHS"];
+			}
+		}
+	}
+	
+	
+	
 	// =======================================
-	// 3. remove .a files from linker options
-	// TODO: what about dylibs? --> remember and add to copy resources stage?
+	// 3. remove .a/.dylib files from linker options
 	// TODO: this currently changes the linker flags in the product config
 	// would be much nicer if it was just set once in the project?
 	// =======================================
@@ -86,9 +109,10 @@
 		for( NSString * configName in target.configurations ){
 			XCProjectBuildConfig * config = target.configurations[configName];
 			
-			NSArray * ldFlags = (NSArray*)[config valueForKey:@"OTHER_LDFLAGS"];
+			NSArray * ldFlags = [self valueAsArray:[config valueForKey:@"OTHER_LDFLAGS"]];
+			
 			// do we have flags?
-			if( ldFlags != nil ){
+			if( ldFlags.count > 0 ){
 				NSMutableArray * newLdFlags = [[NSMutableArray alloc] init];
 				for( NSString * flag in ldFlags ){
 					NSString * basePath = [NSString stringWithFormat:@"../../../addons/%@", addonName];
@@ -125,6 +149,18 @@
 				}
 			}
 		}
+	}
+}
+
+- (NSArray*)valueAsArray:(id) value{
+	if( value == nil ){
+		return [[NSArray alloc] init];
+	}
+	else if( [value isKindOfClass:[NSArray class]]){
+		return value;
+	}
+	else{
+		return [(NSString*)value componentsSeparatedByString:@"\n"];
 	}
 }
 
@@ -174,9 +210,9 @@
 		[self addFileWithPath:relativePath toGroup:addonGroup];
 	}
 	
-	// =======================================
-	// 2. add addons/ofxAddon/libs/*/include
-	// =======================================
+	// =====================================================
+	// 2. add addons/ofxAddon/libs/*/include to include path
+	// =====================================================
 	NSString * libsPath = [addonPath stringByAppendingPathComponent:@"libs"];
 	enumerator = [[NSFileManager defaultManager]
 										 enumeratorAtURL:[NSURL URLWithString:libsPath]
@@ -185,19 +221,50 @@
 										 errorHandler:^(NSURL *url, NSError *error) {return YES;
 										 }];
 	
+	// this is a bit wasteful, because we traverse everything, but only care about the include directory
+	NSMutableSet * includePaths = [[NSMutableSet alloc] init];
 	for( NSURL * url in enumerator ){
 		NSString * path = [url path];
 		NSString * relativePath = [path substringFromIndex:addonPath.length+1];
 		NSArray * components = [relativePath pathComponents];
-		if( components.count >= 3 && [components[2] isEqualToString:@"include"] ){
-			[self addFileWithPath:relativePath toGroup:addonGroup];
+		if( components.count == 3 && [components[2] isEqualToString:@"include"] ){
+			//[self addFileWithPath:relativePath toGroup:addonGroup];
+			[includePaths addObject:[NSString stringWithFormat:@"../../../addons/%@/%@", addonName, relativePath]];
 		}
 	}
 	
+	if( includePaths.count > 0 ){
+		for( XCTarget * target in self.project.targets ){
+			for( NSString * configName in target.configurations ){
+				XCProjectBuildConfig * config = target.configurations[configName];
+				
+				NSArray * searchPaths = [self valueAsArray:[config valueForKey:@"USER_HEADER_SEARCH_PATHS"]];
+				
+				// do we have flags?
+				if( searchPaths == nil ){
+					NSArray * newSearchPaths = [includePaths allObjects];
+					[config addOrReplaceSetting:newSearchPaths forKey:@"USER_HEADER_SEARCH_PATHS"];
+				}
+				else{
+					NSMutableArray * newSearchPaths = [searchPaths mutableCopy];
+					NSMutableSet * missingIncludePaths = [includePaths mutableCopy];
+					for( NSString * path in searchPaths ){
+						[missingIncludePaths removeObject:path];
+					}
+					for( NSString * path in missingIncludePaths ){
+						[newSearchPaths addObject:path];
+					}
+					[config addOrReplaceSetting:newSearchPaths forKey:@"USER_HEADER_SEARCH_PATHS"];
+				}
+			}
+		}
+	}
+
+	
 	// =======================================
-	// 3. add addons/ofxAddon/libs/*/lib/*.a to other linker flags
-	// TODO: what about dylibs? --> remember and add to copy resources stage?
+	// 3. add addons/ofxAddon/libs/*/lib/*.a and *.dylib to other linker flags
 	// TODO: what about platform directories? ie. there is sometimes libs/osx
+	//       --> YES, it's always called "osx" for osx!
 	// should be fairly easy to find if the .a architectures matches the current OF
 	// TODO: this currently changes the linker flags in the product config
 	// would be much nicer if it was just set once in the project?
@@ -210,41 +277,67 @@
 				  }];
 	
 	NSMutableSet * staticLibs = [[NSMutableSet alloc] init];
+	NSMutableSet * dyLibs = [[NSMutableSet alloc] init];
 	
 	for( NSURL * url in enumerator ){
 		NSString * path = [url path];
 		NSString * relativePath = [path substringFromIndex:addonPath.length+1];
 		if( [[path pathExtension] isEqualToString:@"a"] ){
-			[staticLibs addObject:[NSString stringWithFormat:@"../../../addons/%@/libs/%@", addonName, relativePath]];
+			[staticLibs addObject:[NSString stringWithFormat:@"../../../addons/%@/%@", addonName, relativePath]];
+		}
+		if( [[path pathExtension] isEqualToString:@"dylib"] ){
+			NSDictionary * attributes = [[NSFileManager defaultManager] attributesOfItemAtPath:path error:nil];
+			if( [[attributes valueForKey:@"NSFileType"] isEqualToString:NSFileTypeSymbolicLink] ){
+				// skip, those aren't needed?
+			}
+			else{
+				[dyLibs addObject:[NSString stringWithFormat:@"../../../addons/%@/%@", addonName, relativePath]];
+			}
 		}
 	}
 	
-	if( staticLibs.count > 0 ){
+	if( staticLibs.count > 0 || dyLibs.count > 0 ){
 		for( XCTarget * target in self.project.targets ){
 			for( NSString * configName in target.configurations ){
 				XCProjectBuildConfig * config = target.configurations[configName];
 				
-				NSArray * ldFlags = (NSArray*)[config valueForKey:@"OTHER_LDFLAGS"];
+				NSArray * ldFlags = [self valueAsArray:[config valueForKey:@"OTHER_LDFLAGS"]];
 				// do we have flags?
 				if( ldFlags == nil ){
 					NSMutableArray * newLdFlags = [[NSMutableArray alloc] init];
 					[newLdFlags addObject:@"$(OF_CORE_LIBS)"];
 					[newLdFlags addObjectsFromArray:[staticLibs allObjects]];
+					[newLdFlags addObjectsFromArray:[dyLibs allObjects]];
 					[config addOrReplaceSetting:newLdFlags forKey:@"OTHER_LDFLAGS"];
 				}
 				else{
 					NSMutableArray * newLdFlags = [NSMutableArray arrayWithArray:ldFlags];
-					NSMutableSet * missingStaticLibs = [staticLibs copy];
+					NSMutableSet * missingLibs = [[NSMutableSet alloc] init];
+					[missingLibs addObjectsFromArray:[staticLibs allObjects]];
+					[missingLibs addObjectsFromArray:[dyLibs allObjects]];
+					
 					for( NSString * archive in ldFlags ){
-						[missingStaticLibs removeObject:archive];
+						[missingLibs removeObject:archive];
 					}
-					for( NSString * staticLib in missingStaticLibs ){
-						[newLdFlags addObject:staticLib];
+					for( NSString * lib in missingLibs ){
+						[newLdFlags addObject:lib];
 					}
 					[config addOrReplaceSetting:newLdFlags forKey:@"OTHER_LDFLAGS"];
 				}
 			}
 		}
+	}
+	
+	// copy dylibs to final product
+	for( NSString * dyLib in dyLibs ){
+		// the "R" stands for recursive. only using it because it happens to copy symlinks.
+		// http://stackoverflow.com/a/221316/347508
+		// the 2>/dev/null is only to surpress the error status of copy if the file exists already.
+		// and echo -n is used to generate a 0-return code
+		//TODO: this is not ideal, it masks actual errors!
+		
+		NSString * copyCommand = [NSString stringWithFormat:@"cp -fR %@ \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/MacOS\" 2>/dev/null | echo -n", dyLib];
+		[self addToScriptsPhase:copyCommand];
 	}
 	
 	
@@ -257,23 +350,26 @@
 	BOOL hasDataFolder = [[NSFileManager defaultManager] fileExistsAtPath:dataPath];
 	if( hasDataFolder ){
 		NSString * copyCommand = [NSString stringWithFormat:@"cp -rf ../../../addons/%@/bin/data/ \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Resources\"", addonName];
-		
-		for( XCTarget * target in self.project.targets ){
-			// walk through all build phases for this target ...
-			for (NSString* buildPhaseKey in [[[self.project objects] objectForKey:target.key] objectForKey:@"buildPhases"]){
-				NSDictionary* buildPhase = [[self.project objects] objectForKey:buildPhaseKey];
-				// it's a "shell script" phase?
-				// ok, so for simplicites sake we assume there's just one such phase.
-				if ( [[buildPhase valueForKey:@"isa"] isEqualToString:@"PBXShellScriptBuildPhase"] ){
-					NSString * script = [buildPhase valueForKey:@"shellScript"];
-					if( [script rangeOfString:copyCommand].length > 0 ){
-						// neat, no work. that's a good thing!
-					}
-					else{
-						script = [script stringByAppendingFormat:@"\n%@", copyCommand];
-						[buildPhase setValue:script forKey:@"shellScript"];
-						break;
-					}
+		[self addToScriptsPhase:copyCommand];
+	}
+}
+
+- (void) addToScriptsPhase: (NSString *) command {
+	for( XCTarget * target in self.project.targets ){
+		// walk through all build phases for this target ...
+		for (NSString* buildPhaseKey in [[[self.project objects] objectForKey:target.key] objectForKey:@"buildPhases"]){
+			NSDictionary* buildPhase = [[self.project objects] objectForKey:buildPhaseKey];
+			// it's a "shell script" phase?
+			// ok, so for simplicites sake we assume there's just one such phase.
+			if ( [[buildPhase valueForKey:@"isa"] isEqualToString:@"PBXShellScriptBuildPhase"] ){
+				NSString * script = [buildPhase valueForKey:@"shellScript"];
+				if( [script rangeOfString:command].length > 0 ){
+					// neat, no work. that's a good thing!
+				}
+				else{
+					script = [script stringByAppendingFormat:@"\n%@", command];
+					[buildPhase setValue:script forKey:@"shellScript"];
+					break;
 				}
 			}
 		}

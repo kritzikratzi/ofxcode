@@ -26,6 +26,7 @@ int main(int argc, const char * argv[]) {
 	 exit(0);
 	*/
 	
+	printf( "ofxcode, version 1.01" ); 
 	
 	NSString * projectFile;
 	NSString * command;
@@ -74,14 +75,12 @@ int main(int argc, const char * argv[]) {
 	
 	
 	
-	if( [command isEqualToString:@"add"] ){
+	if( [command isEqualToString:@"add"] || [command isEqualToString:@"update"] ){
+		// we _have_ to remove it first anyways. so... add is actually an alias for update, i guess!
+		[proj removeAddon:addonName];
 		[proj addAddon:addonName];
 	}
 	else if( [command isEqualToString:@"remove"]){
-		[proj removeAddon:addonName];
-	}
-	else if( [command isEqualToString:@"update"] ){
-		[proj addAddon:addonName];
 		[proj removeAddon:addonName];
 	}
 	else{
