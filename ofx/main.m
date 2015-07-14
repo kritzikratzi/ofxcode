@@ -26,11 +26,20 @@ int main(int argc, const char * argv[]) {
 	 exit(0);
 	*/
 	
-	printf( "ofxcode, version 1.01" ); 
-	
 	NSString * projectFile;
 	NSString * command;
 	NSString * addonName;
+	
+	// maybe its time for an argument parsing library?
+	if( argc == 2 ){
+		command = [NSString stringWithUTF8String:argv[1]];
+		if( [command isEqualToString:@"version"] ){
+			printf( "ofxcode version 1.01\n" );
+			exit(0);
+		}
+
+	}
+	
 	
 	if( argc == 3 ){
 		// use first .xcodeproj we can find
@@ -68,14 +77,16 @@ int main(int argc, const char * argv[]) {
 			addonName = addons[choice];
 		}
 		else{
-			printf( "fuck you" );
+			printf( "tooo much" );
 			exit(1);
 		}
 	}
 	
-	
-	
-	if( [command isEqualToString:@"add"] || [command isEqualToString:@"update"] ){
+	if( addonName == nil || projectFile == nil ){
+		[CLI printUsage];
+		exit(1);
+	}
+	else if( [command isEqualToString:@"add"] || [command isEqualToString:@"update"] ){
 		// we _have_ to remove it first anyways. so... add is actually an alias for update, i guess!
 		[proj removeAddon:addonName];
 		[proj addAddon:addonName];
