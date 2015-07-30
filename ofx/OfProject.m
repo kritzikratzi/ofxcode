@@ -289,6 +289,8 @@
 			NSDictionary * attributes = [[NSFileManager defaultManager] attributesOfItemAtPath:path error:nil];
 			if( [[attributes valueForKey:@"NSFileType"] isEqualToString:NSFileTypeSymbolicLink] ){
 				// skip, those aren't needed?
+				// actually: don't skip those, they seem to be important in some cases! 
+				[dyLibs addObject:[NSString stringWithFormat:@"../../../addons/%@/%@", addonName, relativePath]];
 			}
 			else{
 				[dyLibs addObject:[NSString stringWithFormat:@"../../../addons/%@/%@", addonName, relativePath]];

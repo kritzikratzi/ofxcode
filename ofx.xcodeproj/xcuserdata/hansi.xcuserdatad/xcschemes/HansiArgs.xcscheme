@@ -44,7 +44,7 @@
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       launchStyle = "0"
       useCustomWorkingDirectory = "YES"
-      customWorkingDirectory = "/Users/hansi/Documents/OF/of_v0084_osx_release/apps/myApps/avtest"
+      customWorkingDirectory = "/Users/hansi/Documents/OF/of_v0084_osx_release/apps/myApps/oscilloscope"
       buildConfiguration = "Debug"
       ignoresPersistentStateOnLaunch = "NO"
       debugDocumentVersioning = "YES"
