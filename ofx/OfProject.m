@@ -30,7 +30,25 @@
 
 @implementation OfProject
 
+// http://stackoverflow.com/a/17581217/347508
+- (NSString *)resolvePath:(NSString *)path {
+	NSString *expandedPath = [path stringByStandardizingPath];
+	const char *cpath = [expandedPath cStringUsingEncoding:NSUTF8StringEncoding];
+	char *resolved = NULL;
+	char *returnValue = realpath(cpath, resolved);
+	
+	if (returnValue == NULL && resolved != NULL) {
+		printf("Error with path: %s\n", resolved);
+		// if there is an error then resolved is set with the path which caused the issue
+		// returning nil will prevent further action on this path
+		return nil;
+	}
+	
+	return [NSString stringWithCString:returnValue encoding:NSUTF8StringEncoding];
+}
+
 - (id)initWithPath:(NSString*)path{
+	path = [self resolvePath:path];
 	NSLog(@"Opening project %@", [path lastPathComponent]);
 	_project = [[XCProject alloc] initWithFilePath:path];
 	_path = path;

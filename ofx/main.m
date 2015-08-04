@@ -132,12 +132,37 @@ int main(int argc, const char * argv[]) {
 										 options:NSDirectoryEnumerationSkipsSubdirectoryDescendants
 										 errorHandler:^(NSURL *url, NSError *error) {return YES;}];
 	
+	NSMutableArray * paths = [[NSMutableArray alloc] init];
 	for( NSURL * url in enumerator ){
 		NSString * path = [url path];
 		if( [[path pathExtension] isEqualToString:@"xcodeproj"] ){
-			return path;
+			[paths addObject:path];
 		}
 	}
+	
+	if( paths.count == 0 ){
+		return nil;
+	}
+	else if( paths.count == 1 ){
+		return paths.firstObject;
+	}
+	else{
+		for( int i = 0; i < paths.count; i++ ){
+			printf( "%d. %s\n", i+1, [paths[i] UTF8String] );
+		}
+		
+		int choice;
+		scanf ("%d", &choice);
+		choice --;
+		if( choice >= 0 && choice < paths.count ){
+			return paths[choice];
+		}
+		else{
+			printf( "tooo much" );
+			exit(3);
+		}
+	}
+	
 	
 	return nil;
 }
