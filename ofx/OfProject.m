@@ -323,7 +323,7 @@
 				
 				NSArray * ldFlags = [self valueAsArray:[config valueForKey:@"OTHER_LDFLAGS"]];
 				// do we have flags?
-				if( ldFlags == nil ){
+				if( ldFlags == nil || ldFlags.count == 0 ){
 					NSMutableArray * newLdFlags = [[NSMutableArray alloc] init];
 					[newLdFlags addObject:@"$(OF_CORE_LIBS)"];
 					[newLdFlags addObjectsFromArray:[staticLibs allObjects]];
