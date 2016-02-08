@@ -212,27 +212,15 @@
 	XCGroup * addonGroup = [self getOrCreateAddonGroup:addonName];
 	
 	// =======================================
-	// 1. add the source folder recursively
+	// 1.1 add the source folder recursively
 	// =======================================
-	NSString * srcPath = [addonPath stringByAppendingPathComponent:@"src"];
-	NSDirectoryEnumerator *enumerator = [[NSFileManager defaultManager]
-										 enumeratorAtURL:[NSURL URLWithString:srcPath]
-										 includingPropertiesForKeys:nil
-										 options:0
-										 errorHandler:^(NSURL *url, NSError *error) {return YES;
-										 }];
-	
-	for( NSURL * url in enumerator ){
-		NSString * path = [url path];
-		NSString * relativePath = [path substringFromIndex:addonPath.length+1];
-		[self addFileWithPath:relativePath toGroup:addonGroup];
-	}
+	[self addDirRecursively:@"src" addonPath:addonPath toGroup:addonGroup];
 	
 	// =====================================================
-	// 2. add addons/ofxAddon/libs/*/include to include path
+	// 2. add addons/ofxAddon/libs/*/include to include path and libs/*/src to src path
 	// =====================================================
 	NSString * libsPath = [addonPath stringByAppendingPathComponent:@"libs"];
-	enumerator = [[NSFileManager defaultManager]
+	NSDirectoryEnumerator * enumerator = [[NSFileManager defaultManager]
 										 enumeratorAtURL:[NSURL URLWithString:libsPath]
 										 includingPropertiesForKeys:nil
 										 options:0
@@ -246,8 +234,11 @@
 		NSString * relativePath = [path substringFromIndex:addonPath.length+1];
 		NSArray * components = [relativePath pathComponents];
 		if( components.count == 3 && [components[2] isEqualToString:@"include"] ){
-			//[self addFileWithPath:relativePath toGroup:addonGroup];
 			[includePaths addObject:[NSString stringWithFormat:@"../../../addons/%@/%@", addonName, relativePath]];
+		}
+		if( components.count == 3 && [components[2] isEqualToString:@"src"] ){
+			[includePaths addObject:[NSString stringWithFormat:@"../../../addons/%@/%@", addonName, relativePath]];
+			[self addDirRecursively:relativePath addonPath:addonPath toGroup:addonGroup];
 		}
 	}
 	
@@ -394,6 +385,24 @@
 			}
 		}
 	}
+}
+
+- (XCGroup*) addDirRecursively:(NSString *)relativePath addonPath:(NSString*)addonPath toGroup:(XCGroup *)group{
+	NSString * srcPath = [addonPath stringByAppendingPathComponent:relativePath];
+	NSDirectoryEnumerator *enumerator = [[NSFileManager defaultManager]
+										 enumeratorAtURL:[NSURL URLWithString:srcPath]
+										 includingPropertiesForKeys:nil
+										 options:0
+										 errorHandler:^(NSURL *url, NSError *error) {return YES;
+										 }];
+	
+	for( NSURL * url in enumerator ){
+		NSString * path = [url path];
+		NSString * relativePath = [path substringFromIndex:addonPath.length+1];
+		[self addFileWithPath:relativePath toGroup:group];
+	}
+	
+	return group; 
 }
 
 - (XCGroup*) addFileWithPath: (NSString*) relativePath toGroup:(XCGroup*)group{
