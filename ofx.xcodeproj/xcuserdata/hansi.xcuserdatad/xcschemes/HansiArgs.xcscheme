@@ -44,7 +44,7 @@
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       launchStyle = "0"
       useCustomWorkingDirectory = "YES"
-      customWorkingDirectory = "/Users/hansi/Documents/OF/of_v0084_osx_release/apps/myApps/wavReaderTest"
+      customWorkingDirectory = "/Users/hansi/Documents/OF/of_v0093_osx_release/apps/myApps/AudiLogo"
       buildConfiguration = "Debug"
       ignoresPersistentStateOnLaunch = "NO"
       debugDocumentVersioning = "YES"
@@ -61,7 +61,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "emptyExample.xcodeproj add ofxAvCodec"
+            argument = "add ofxAvCodec"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

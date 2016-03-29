@@ -34,7 +34,7 @@ int main(int argc, const char * argv[]) {
 	if( argc == 2 ){
 		command = [NSString stringWithUTF8String:argv[1]];
 		if( [command isEqualToString:@"version"] ){
-			printf( "ofxcode version 1.01\n" );
+			printf( "ofxcode version 1.06\n" );
 			exit(0);
 		}
 

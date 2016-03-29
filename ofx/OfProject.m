@@ -291,10 +291,14 @@
 	for( NSURL * url in enumerator ){
 		NSString * path = [url path];
 		NSString * relativePath = [path substringFromIndex:addonPath.length+1];
-		if( [[path pathExtension] isEqualToString:@"a"] ){
+		NSArray * components = [relativePath pathComponents];
+		if( components.count < 4 || ![components[3] isEqualToString: @"osx"] ){
+			// ignore, not inside the osx subfolder
+		}
+		else if( [[path pathExtension] isEqualToString:@"a"] ){
 			[staticLibs addObject:[NSString stringWithFormat:@"../../../addons/%@/%@", addonName, relativePath]];
 		}
-		if( [[path pathExtension] isEqualToString:@"dylib"] ){
+		else if( [[path pathExtension] isEqualToString:@"dylib"] ){
 			NSDictionary * attributes = [[NSFileManager defaultManager] attributesOfItemAtPath:path error:nil];
 			if( [[attributes valueForKey:@"NSFileType"] isEqualToString:NSFileTypeSymbolicLink] ){
 				// skip, those aren't needed?
