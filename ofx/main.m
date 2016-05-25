@@ -13,6 +13,9 @@
 @interface CLI : NSObject
 +(void) printUsage;
 +(NSString*) findXcodeProjectFile;
++(NSMutableSet*) readAddonsMake: (NSString*) path;
++(void) writeAddonsMake: (NSString*) path addonNames:(NSSet*)addonNames;
++(NSString*) askForAddonName: (NSArray*) availableAddonNames;
 @end
 
 int main(int argc, const char * argv[]) {
@@ -28,100 +31,108 @@ int main(int argc, const char * argv[]) {
 	
 	NSString * projectFile;
 	NSString * command;
-	NSString * addonName;
 	
-	// maybe its time for an argument parsing library?
-	if( argc == 2 ){
-		command = [NSString stringWithUTF8String:argv[1]];
-		if( [command isEqualToString:@"version"] ){
-			printf( "ofxcode version 1.06\n" );
-			exit(0);
-		}
-
+	NSMutableArray * args = [[NSMutableArray alloc] init];
+	for( int i = 1; i < argc; i++ ){
+		[args addObject:[NSString stringWithUTF8String:argv[i]]];
 	}
 	
-	
-	if( argc == 3 ){
-		// use first .xcodeproj we can find
-		projectFile = [CLI findXcodeProjectFile];
-		if( projectFile == nil ){
-			printf("No .xcodeproject file found in the current directory" );
-			exit(1);
-		}
-		
-		command = [NSString stringWithUTF8String:argv[1]];
-		addonName = [NSString stringWithUTF8String:argv[2]];
-	}
-	else if( argc == 4 ){
-		projectFile = [NSString stringWithUTF8String:argv[1]];
-		command = [NSString stringWithUTF8String:argv[2]];
-		addonName = [NSString stringWithUTF8String:argv[3]];
+	// The first argument is an optional xcodeproject path
+	if( [[args.firstObject pathExtension] isEqualToString:@".xcodeproj"] ){
+		// It is!
+		projectFile = args.firstObject;
+		[args removeObjectAtIndex:0];
 	}
 	else{
+		projectFile = [CLI findXcodeProjectFile];
+	}
+	
+	
+	if( args.count == 0 ){
 		[CLI printUsage];
 		exit(0);
 	}
-	
-	OfProject * proj = [[OfProject alloc] initWithPath:projectFile];
-
-	if( [addonName isEqualToString:@"-"] ){
-		NSArray * addons = proj.availableAddons;
-		for( int i = 0; i < addons.count; i++ ){
-			printf( "%d. %s\n", i+1, [addons[i] UTF8String] );
-		}
-		
-		int choice;
-		scanf ("%d", &choice);
-		choice --;
-		if( choice >= 0 && choice < addons.count ){
-			addonName = addons[choice];
-		}
-		else{
-			printf( "tooo much" );
-			exit(1);
-		}
+	else{
+		// Now we must have a command
+		command = args.firstObject;
+		[args removeObjectAtIndex:0];
 	}
 	
-	if( addonName == nil || projectFile == nil ){
-		[CLI printUsage];
+	
+	if( [command isEqualToString:@"version"] ){
+		printf( "ofxcode version 1.07\n" );
+		exit(0);
+	}
+	
+	if( ![NSFileManager.defaultManager fileExistsAtPath:projectFile] ){
+		printf("XCode project file could not be loaded\n");
 		exit(1);
+	}
+	OfProject * proj = [[OfProject alloc] initWithPath:projectFile];
+	NSString * addonsMakeFile = [[projectFile stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"addons.make"];
+	NSMutableSet * projAddons = [CLI readAddonsMake:addonsMakeFile];
+
+	if( [command isEqualToString:@"sync"] ){
+		// update all addons as set by addons.make
+		for( NSString * addonName in projAddons ){
+			[proj removeAddon:addonName];
+			[proj addAddon:addonName];
+		}
 	}
 	else if( [command isEqualToString:@"add"] || [command isEqualToString:@"update"] ){
 		// we _have_ to remove it first anyways. so... add is actually an alias for update, i guess!
-		[proj removeAddon:addonName];
-		[proj addAddon:addonName];
+		NSArray * addonNames;
+		if( args.count == 0 || [args.firstObject isEqualToString:@"-"] ){
+			addonNames = @[ [CLI askForAddonName:proj.availableAddons] ];
+		}
+		else{
+			addonNames = args; // only addons from here on
+		}
+		
+		for( NSString * addonName in addonNames ){
+			[proj removeAddon:addonName];
+			[proj addAddon:addonName];
+			[projAddons addObject:addonName];
+		}
 	}
 	else if( [command isEqualToString:@"remove"]){
-		[proj removeAddon:addonName];
+		NSArray * addonNames;
+		if( args.count == 0 || [args.firstObject isEqualToString:@"-"] ){
+			addonNames = @[ [CLI askForAddonName:proj.availableAddons] ];
+		}
+		else{
+			addonNames = args; // only addons from here on
+		}
+		
+		for( NSString * addonName in addonNames ){
+			[proj removeAddon:addonName];
+			[projAddons removeObject:addonName];
+		}
 	}
 	else{
 		[CLI printUsage];
 		exit(1);
 	}
 	
-	printf( "\n\nWriting changes to %s, sure?\n", projectFile.lastPathComponent.UTF8String);
-	printf( "y/n? "); 
-	char ch;
-	scanf(" %c", &ch);
-	if( ch == 'y' ){
-		[proj save];
-	}
-	else{
-		printf( "Didn't save!" );
-	}
-    return 0;
+	[proj save];
+	[CLI writeAddonsMake:addonsMakeFile addonNames:projAddons];
+
+	return 0;
 }
 
 
 @implementation CLI
 +(void) printUsage{
-	printf("Usage: ofxcode [project-file] (add|remove|update) addonName\n\n");
+	printf("Usage: ofxcode [project-file] (add|remove|update) addonName\n");
+	printf("or     ofxcode [project-file] sync\n\n");
+	
 	printf("  project-file: Name of project file, e.g. emptyExample.xcodeproj\n" );
-	printf("                If not provided the first xcodeproject in the directory will be used.\n\n" );
+	printf("                Optional. You'll be prompted to select the project file if there is more than one in the current folder. \n\n" );
 	printf("  \n" );
-	printf("  add|remove|update: Adds/removes an addon. Update first calls remove, then add. \n" );
+	printf("  add|remove|update: Adds/removes an addon. This also changes addons.make\n" );
+	printf("  If no addon name is provided you will be asked to pick from a list. \n");
 	printf("  \n" );
-	printf("  addonName:    Name of an addon. Use a dash (-) to pick from a list of available addons. \n" );
+	printf("  sync: Remove all addons, and re-adds them based on addons.make\n\n");
 }
 
 +(NSString*) findXcodeProjectFile{
@@ -166,4 +177,71 @@ int main(int argc, const char * argv[]) {
 	
 	return nil;
 }
+
++(NSMutableSet*) readAddonsMake: (NSString*) path{
+	NSString * contents = [NSString stringWithContentsOfFile:path encoding:NSUTF8StringEncoding error:nil];
+	NSArray * names = [contents componentsSeparatedByString:@"\n"];
+	NSMutableSet * result = [[NSMutableSet alloc] init];
+	for( NSString * addonName in names ){
+		if( ![addonName isEqualToString:@""] ){
+			[result addObject:addonName];
+		}
+	}
+	return result;
+}
+
++(void) writeAddonsMake: (NSString*) path addonNames:(NSSet*)addonNames{
+	NSString * contents = [NSString stringWithContentsOfFile:path encoding:NSUTF8StringEncoding error:nil];
+	
+	if( [addonNames isEqualToSet:[CLI readAddonsMake:path]] ){
+		// addons didn't change. no need to write anything
+	}
+	else{
+		// old addons ordered
+		NSArray * oldNames = [contents componentsSeparatedByString:@"\n"];
+		// new addons unordered
+		NSMutableSet * remaining = [NSMutableSet setWithSet:addonNames];
+		
+
+		// new addons ordered
+		NSString * result = @"";
+		BOOL first = YES;
+		
+		// first add in all addons that were already there, preserve their order
+		for( NSString * addonName in oldNames ){
+			if( [remaining containsObject:addonName] ){
+				if(!first) result = [result stringByAppendingString:@"\n"];
+				else first = NO;
+				result = [result stringByAppendingString:addonName];
+				[remaining removeObject:addonName];
+			}
+		}
+		
+		for( NSString * addonName in remaining ){
+				if(!first) result = [result stringByAppendingString:@"\n"];
+				else first = NO;
+				result = [result stringByAppendingString:addonName];
+		}
+		
+		[result writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:nil];
+	}
+}
+
++(NSString*) askForAddonName: (NSArray*) availableAddonNames{
+	for( int i = 0; i < availableAddonNames.count; i++ ){
+		printf( "%d. %s\n", i+1, [availableAddonNames[i] UTF8String] );
+	}
+	
+	int choice;
+	scanf ("%d", &choice);
+	choice --;
+	if( choice >= 0 && choice < availableAddonNames.count ){
+		return availableAddonNames[choice];
+	}
+	else{
+		printf( "tooo much" );
+		exit(1);
+	}
+}
+
 @end

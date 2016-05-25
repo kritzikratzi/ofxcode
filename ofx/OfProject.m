@@ -49,7 +49,6 @@
 
 - (id)initWithPath:(NSString*)path{
 	path = [self resolvePath:path];
-	NSLog(@"Opening project %@", [path lastPathComponent]);
 	_project = [[XCProject alloc] initWithFilePath:path];
 	_path = path;
 	_projPath = [path stringByDeletingLastPathComponent];
@@ -57,15 +56,13 @@
 	_addonsPath = [self.ofPath stringByAppendingPathComponent:@"addons"];
 	
 	
-	XCGroup* group = [self.project groupWithPathFromRoot:@"addons"];
-	
-	NSLog(@"Addons in project file: ");
-	for( NSString * key in group.children ){
-		XCGroup * addon = [self.project groupWithKey:key];
-		NSLog(@"- %@", addon.displayName);
-	}
-	
-	NSLog(@"\n\n");
+	//XCGroup* group = [self.project groupWithPathFromRoot:@"addons"];
+	//NSLog(@"Addons in xcode file: ");
+	//for( NSString * key in group.children ){
+	//	XCGroup * addon = [self.project groupWithKey:key];
+	//	NSLog(@"- %@", addon.displayName);
+	//}
+	//NSLog(@"\n\n");
 
 	
 	return self;
@@ -77,8 +74,6 @@
 }
 
 - (void)removeAddon:(NSString*)addonName{
-	NSLog(@"Removing addon %@", addonName );
-	
 	// great! now figure out what to add...
 	NSString * addonPath = [self.addonsPath stringByAppendingPathComponent:addonName];
 	
@@ -200,7 +195,6 @@
 }
 
 - (void)addAddon:(NSString *)addonName{
-	NSLog(@"Adding addon %@", addonName );
 	// remove the addon first!
 	// rly? nooo maybe just remove the group? idk...
 	// [self removeAddon:addonName];

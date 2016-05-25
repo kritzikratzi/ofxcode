@@ -44,7 +44,7 @@
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       launchStyle = "0"
       useCustomWorkingDirectory = "YES"
-      customWorkingDirectory = "/Users/hansi/Documents/OF/of_v0093_osx_release/apps/myApps/AudiLogo"
+      customWorkingDirectory = "/Users/hansi/Documents/OF/of_v0093_osx_release/apps/myApps/mySketch"
       buildConfiguration = "Debug"
       ignoresPersistentStateOnLaunch = "NO"
       debugDocumentVersioning = "YES"
@@ -61,7 +61,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "add ofxAvCodec"
+            argument = "add"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
