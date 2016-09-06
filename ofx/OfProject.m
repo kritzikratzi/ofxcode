@@ -315,6 +315,7 @@
 				if( ldFlags == nil || ldFlags.count == 0 ){
 					NSMutableArray * newLdFlags = [[NSMutableArray alloc] init];
 					[newLdFlags addObject:@"$(OF_CORE_LIBS)"];
+					[newLdFlags addObject:@"$(OF_CORE_FRAMEWORKS)"];
 					[newLdFlags addObjectsFromArray:[staticLibs allObjects]];
 					[newLdFlags addObjectsFromArray:[dyLibs allObjects]];
 					[config addOrReplaceSetting:newLdFlags forKey:@"OTHER_LDFLAGS"];
