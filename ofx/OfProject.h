@@ -17,20 +17,27 @@
 #import <XcodeEditor/XCTarget.h>
 #import <XcodeEditor/XCProjectBuildConfig.h>
 
+#import "OfAddon.h"
+
 @interface OfProject : NSObject
 
 @property (readonly) NSString * path; // path to project file
 @property (readonly) NSString * ofPath; // path to OF
 @property (readonly) NSString * projPath; // path to project
-@property (readonly) NSString * addonsPath; // path to addons
+@property (readonly) NSString * addonsPathGlobal; // path to addons
+@property (readonly) NSString * addonsPathLocal; // path to addons
 
 @property (readonly) XCProject * project;
 
 - (id)initWithPath:(NSString*)path;
 - (void)save;
 
-// returns a list of addon names installed in OF.x.x/addons/
+// returns a list of addon names installed in OF.x.x/addons/ (cached)
 - (NSArray*)availableAddons;
+- (NSArray*)availableAddonNames;
+
+// scans for local/global addons, returns an array of OfAddon
+- (NSArray*)scanForAddons;
 
 // add a specific addon to the project.
 // if it was already added, it will be removed and re-added.
@@ -43,17 +50,20 @@
 // -6. create a new "copy bundle resources" stage for addon specific frameworks
 //
 // can't be bothered about (5) and (6) for now.
-- (void)addAddon:(NSString*)name;
+- (void)addAddonNamed:(NSString*)name;
+- (void)addAddon:(OfAddon*)addon;
 
 // removes an addon from the project.
 // ruins all the hard work that addAddon performed.
-- (void)removeAddon:(NSString*)name;
+- (void)removeAddonNamed:(NSString*)name;
+- (void)removeAddon:(OfAddon*)addon;
+- (void)removeAddonLocallyAndGlobally:(OfAddon*)addon;
 
 
 // from here on it's private methods
 - (XCGroup*) addFileWithPath: (NSString*)relativePath toGroup:(XCGroup*)group;
 - (XCGroup*) addDirRecursively: (NSString*)relativePath addonPath:(NSString*)addonPath toGroup:(XCGroup*)group;
-- (XCGroup*) getOrCreateAddonGroup: (NSString*)addonName;
+- (XCGroup*) getOrCreateAddonGroup: (OfAddon*)addon;
 
 - (BOOL) isDirectory:(NSString*)path;
 

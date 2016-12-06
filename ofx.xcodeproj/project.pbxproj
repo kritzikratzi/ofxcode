@@ -10,6 +10,7 @@
 		BA0794C81AFB0B45004062FD /* XcodeEditor.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BAB60E5E1AF696670069C8B1 /* XcodeEditor.framework */; settings = {ATTRIBUTES = (Required, ); }; };
 		BAB60E521AF6965D0069C8B1 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = BAB60E511AF6965D0069C8B1 /* main.m */; };
 		BAB60E631AF69ACA0069C8B1 /* OfProject.m in Sources */ = {isa = PBXBuildFile; fileRef = BAB60E621AF69ACA0069C8B1 /* OfProject.m */; };
+		BAD394161DF65B3D003F32D8 /* OfAddon.mm in Sources */ = {isa = PBXBuildFile; fileRef = BAD394151DF65B3D003F32D8 /* OfAddon.mm */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -48,6 +49,8 @@
 		BAB60E581AF696670069C8B1 /* xcode-editor.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "xcode-editor.xcodeproj"; path = "../XcodeEditor/xcode-editor.xcodeproj"; sourceTree = "<group>"; };
 		BAB60E621AF69ACA0069C8B1 /* OfProject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OfProject.m; sourceTree = "<group>"; };
 		BAB60E641AF69AD70069C8B1 /* OfProject.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OfProject.h; sourceTree = "<group>"; };
+		BAD394141DF65B3D003F32D8 /* OfAddon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OfAddon.h; sourceTree = "<group>"; };
+		BAD394151DF65B3D003F32D8 /* OfAddon.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = OfAddon.mm; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -84,8 +87,10 @@
 			isa = PBXGroup;
 			children = (
 				BAB60E511AF6965D0069C8B1 /* main.m */,
-				BAB60E621AF69ACA0069C8B1 /* OfProject.m */,
 				BAB60E641AF69AD70069C8B1 /* OfProject.h */,
+				BAB60E621AF69ACA0069C8B1 /* OfProject.m */,
+				BAD394141DF65B3D003F32D8 /* OfAddon.h */,
+				BAD394151DF65B3D003F32D8 /* OfAddon.mm */,
 			);
 			path = ofx;
 			sourceTree = "<group>";
@@ -125,7 +130,7 @@
 		BAB60E461AF6965D0069C8B1 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0620;
+				LastUpgradeCheck = 0720;
 				ORGANIZATIONNAME = hansi;
 				TargetAttributes = {
 					BAB60E4D1AF6965D0069C8B1 = {
@@ -180,6 +185,7 @@
 			files = (
 				BAB60E631AF69ACA0069C8B1 /* OfProject.m in Sources */,
 				BAB60E521AF6965D0069C8B1 /* main.m in Sources */,
+				BAD394161DF65B3D003F32D8 /* OfAddon.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -205,6 +211,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;

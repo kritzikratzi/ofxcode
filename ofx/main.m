@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import "OfProject.h"
-
+#define VERSION_STRING "1.08"
 
 @interface CLI : NSObject
 +(void) printUsage;
@@ -60,7 +60,7 @@ int main(int argc, const char * argv[]) {
 	
 	
 	if( [command isEqualToString:@"version"] ){
-		printf( "ofxcode version 1.07\n" );
+		printf( "ofxcode version %s\n", VERSION_STRING );
 		exit(0);
 	}
 	
@@ -75,8 +75,8 @@ int main(int argc, const char * argv[]) {
 	if( [command isEqualToString:@"sync"] ){
 		// update all addons as set by addons.make
 		for( NSString * addonName in projAddons ){
-			[proj removeAddon:addonName];
-			[proj addAddon:addonName];
+			[proj removeAddonNamed:addonName];
+			[proj addAddonNamed:addonName];
 		}
 	}
 	else if( [command isEqualToString:@"add"] || [command isEqualToString:@"update"] ){
@@ -90,8 +90,8 @@ int main(int argc, const char * argv[]) {
 		}
 		
 		for( NSString * addonName in addonNames ){
-			[proj removeAddon:addonName];
-			[proj addAddon:addonName];
+			[proj removeAddonNamed:addonName];
+			[proj addAddonNamed:addonName];
 			[projAddons addObject:addonName];
 		}
 	}
@@ -105,7 +105,7 @@ int main(int argc, const char * argv[]) {
 		}
 		
 		for( NSString * addonName in addonNames ){
-			[proj removeAddon:addonName];
+			[proj removeAddonNamed:addonName];
 			[projAddons removeObject:addonName];
 		}
 	}
@@ -123,6 +123,7 @@ int main(int argc, const char * argv[]) {
 
 @implementation CLI
 +(void) printUsage{
+	printf("ofxcode version %s\n", VERSION_STRING );
 	printf("Usage: ofxcode [project-file] (add|remove|update) addonName\n");
 	printf("or     ofxcode [project-file] sync\n\n");
 	
@@ -227,16 +228,17 @@ int main(int argc, const char * argv[]) {
 	}
 }
 
-+(NSString*) askForAddonName: (NSArray*) availableAddonNames{
-	for( int i = 0; i < availableAddonNames.count; i++ ){
-		printf( "%d. %s\n", i+1, [availableAddonNames[i] UTF8String] );
++(NSString*) askForAddonName: (NSArray*) availableAddons{
+	for( int i = 0; i < availableAddons.count; i++ ){
+		OfAddon * addon = availableAddons[i];
+		printf( "%d. %s %s\n", i+1, addon.name.UTF8String, addon.isLocal?"(local)":"" );
 	}
 	
 	int choice;
 	scanf ("%d", &choice);
 	choice --;
-	if( choice >= 0 && choice < availableAddonNames.count ){
-		return availableAddonNames[choice];
+	if( choice >= 0 && choice < availableAddons.count ){
+		return ((OfAddon*)availableAddons[choice]).name;
 	}
 	else{
 		printf( "tooo much" );

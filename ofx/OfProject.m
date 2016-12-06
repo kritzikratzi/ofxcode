@@ -28,7 +28,9 @@
 @end
 
 
-@implementation OfProject
+@implementation OfProject{
+	NSMutableDictionary * addons; // a map of nsstring->OfAddon
+}
 
 // http://stackoverflow.com/a/17581217/347508
 - (NSString *)resolvePath:(NSString *)path {
@@ -53,7 +55,8 @@
 	_path = path;
 	_projPath = [path stringByDeletingLastPathComponent];
 	_ofPath = [[[self.projPath stringByDeletingLastPathComponent] stringByDeletingLastPathComponent] stringByDeletingLastPathComponent];
-	_addonsPath = [self.ofPath stringByAppendingPathComponent:@"addons"];
+	_addonsPathGlobal = [self.ofPath stringByAppendingPathComponent:@"addons"];
+	_addonsPathLocal = [self.projPath stringByAppendingPathComponent:@"addons"];
 	
 	
 	//XCGroup* group = [self.project groupWithPathFromRoot:@"addons"];
@@ -63,7 +66,13 @@
 	//	NSLog(@"- %@", addon.displayName);
 	//}
 	//NSLog(@"\n\n");
-
+	
+	// scanForAddons returns global first, then local.
+	// we process in the same order, so local addons will remain
+	addons = [[NSMutableDictionary alloc] init]; 
+	for( OfAddon * addon in [self scanForAddons]){
+		[addons setObject:addon forKey:addon.name];
+	}
 	
 	return self;
 }
@@ -73,12 +82,30 @@
 	[self.project save];
 }
 
-- (void)removeAddon:(NSString*)addonName{
+
+- (void)removeAddonNamed:(NSString *)name{
 	// great! now figure out what to add...
-	NSString * addonPath = [self.addonsPath stringByAppendingPathComponent:addonName];
-	
+	OfAddon * addon = [addons objectForKey:name];
+	if(addon == nil){
+		NSLog(@"not removing addon %@, unknown addon. ", name); // addadadadadad
+		return;
+	}
+	else{
+		[self removeAddonLocallyAndGlobally:addon];
+	}
+}
+
+- (void)removeAddonLocallyAndGlobally:(OfAddon*)addon{
+	[self removeAddon:addon];
+	OfAddon * other = [[OfAddon alloc] initWithName:addon.name isLocal:!addon.isLocal];
+	[self removeAddon:other];
+}
+
+
+- (void)removeAddon:(OfAddon*)addon{
+	NSString * groupPath = addon.isLocal?@"local_addons":@"addons";
 	// create a new group for the addon...
-	XCGroup * addonGroup = [self.project groupWithPathFromRoot:[NSString stringWithFormat:@"addons/%@",addonName]];
+	XCGroup * addonGroup = [self.project groupWithPathFromRoot:[NSString stringWithFormat:@"%@/%@",groupPath,addon.name]];
 	
 	// =======================================
 	// 1. remove the group addons/ofxMyAddon/src
@@ -100,7 +127,7 @@
 			if( searchPaths.count > 0 ){
 				NSMutableArray * newSearchPaths = [[NSMutableArray alloc] init];
 				for( NSString * path in searchPaths ){
-					NSString * basePath = [NSString stringWithFormat:@"../../../addons/%@", addonName];
+					NSString * basePath = addon.relativePath;
 					if( [path rangeOfString:basePath].length == 0 ){
 						[newSearchPaths addObject:path];
 					}
@@ -128,7 +155,7 @@
 			if( ldFlags.count > 0 ){
 				NSMutableArray * newLdFlags = [[NSMutableArray alloc] init];
 				for( NSString * flag in ldFlags ){
-					NSString * basePath = [NSString stringWithFormat:@"../../../addons/%@", addonName];
+					NSString * basePath = addon.relativePath;
 					if( [flag rangeOfString:basePath].length == 0 ){
 						[newLdFlags addObject:flag];
 					}
@@ -142,27 +169,33 @@
 	
 	// =======================================
 	// 4. remove from "run script" phase
-	// TODO: losen regex? 
+	// TODO: losen regex? --> done! ^^
 	// =======================================
-	NSString * copyCommand = [NSString stringWithFormat:@"cp -rf ../../../addons/%@/bin/data/ \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Resources\"", addonName];
 	
-	NSString * exprString = [NSString stringWithFormat:@"%@\n*", [NSRegularExpression escapedTemplateForString:copyCommand]];
-	for( XCTarget * target in self.project.targets ){
-		// walk through all build phases for this target ...
-		for (NSString* buildPhaseKey in [[[self.project objects] objectForKey:target.key] objectForKey:@"buildPhases"]){
-			NSDictionary* buildPhase = [[self.project objects] objectForKey:buildPhaseKey];
-			// it's a "shell script" phase?
-			// ok, so for simplicites sake we assume there's just one such phase.
-			if ( [[buildPhase valueForKey:@"isa"] isEqualToString:@"PBXShellScriptBuildPhase"] ){
-				NSString * script = [buildPhase valueForKey:@"shellScript"];
-				if( [script rangeOfString:copyCommand].length > 0 ){
-					// remove it !
-					script = [script stringByReplacingOccurrencesOfString:exprString withString:@"" options:NSRegularExpressionSearch range:NSMakeRange(0, script.length)];
-					[buildPhase setValue:script forKey:@"shellScript"];
+	void (^removeCmd)(NSString*) = ^void(NSString * cmd) {
+		NSString * expr = [NSString stringWithFormat:@"%@.*\n*", [NSRegularExpression escapedTemplateForString:cmd]];
+		for( XCTarget * target in self.project.targets ){
+			// walk through all build phases for this target ...
+			for (NSString* buildPhaseKey in [[[self.project objects] objectForKey:target.key] objectForKey:@"buildPhases"]){
+				NSDictionary* buildPhase = [[self.project objects] objectForKey:buildPhaseKey];
+				// it's a "shell script" phase?
+				// ok, so for simplicites sake we assume there's just one such phase.
+				if ( [[buildPhase valueForKey:@"isa"] isEqualToString:@"PBXShellScriptBuildPhase"] ){
+					NSString * script = [buildPhase valueForKey:@"shellScript"];
+					if( [script rangeOfString:cmd options:NSCaseInsensitiveSearch].length > 0 ){
+						// remove it !
+						script = [script stringByReplacingOccurrencesOfString:expr withString:@"" options:NSRegularExpressionSearch|NSCaseInsensitiveSearch range:NSMakeRange(0, script.length)];
+						[buildPhase setValue:script forKey:@"shellScript"];
+					}
 				}
 			}
 		}
-	}
+	};
+	
+	removeCmd([NSString stringWithFormat:@"cp -rf %@/", addon.relativePath]);
+	removeCmd([NSString stringWithFormat:@"cp -fr %@/", addon.relativePath]);
+	removeCmd([NSString stringWithFormat:@"rsync -aved %@/", addon.relativePath]);
+	
 }
 
 - (NSArray*)valueAsArray:(id) value{
@@ -177,33 +210,64 @@
 	}
 }
 
-- (NSArray*)availableAddons{
-	NSArray* addons = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:self.addonsPath
-																		  error:NULL];
-	NSMutableArray * addonNames = [[NSMutableArray alloc] initWithCapacity:addons.count];
-	for( NSString * addon in addons ){
-		NSString * addonPath = [self.addonsPath stringByAppendingPathComponent:addon];
-		BOOL isDir = NO;
-		[[NSFileManager defaultManager] fileExistsAtPath:addonPath
-											 isDirectory:&isDir];
-		if( isDir ){
-			[addonNames addObject:addon];
-		}
-	}
-	
-	return addonNames;
+- (NSArray*)availableAddonNames{
+	NSMutableArray * keys = [NSMutableArray arrayWithArray:addons.allKeys];
+	[keys sortUsingSelector:@selector(compare:)];
+	return keys;
 }
 
-- (void)addAddon:(NSString *)addonName{
-	// remove the addon first!
-	// rly? nooo maybe just remove the group? idk...
-	// [self removeAddon:addonName];
+- (NSArray*)availableAddons{
+	NSMutableArray * values = [NSMutableArray arrayWithArray:[addons allValues]];
+	[values sortUsingComparator:^NSComparisonResult(OfAddon * addon, OfAddon * other) {
+		return [addon.name compare:other.name];
+	}];
 	
+	return values;
+}
+
+- (NSArray*)scanForAddons{
+	
+	NSArray * (^scan)(BOOL local) = ^NSArray*(BOOL local) {
+		NSString * path = local?self.addonsPathLocal:self.addonsPathGlobal;
+		NSArray* addonDirs = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:path
+																				 error:NULL];
+		NSMutableArray * addonList = [[NSMutableArray alloc] initWithCapacity:addonDirs.count];
+		for( NSString * addon in addonDirs ){
+			NSString * addonPath = [path stringByAppendingPathComponent:addon];
+			BOOL isDir = NO;
+			[[NSFileManager defaultManager] fileExistsAtPath:addonPath
+												 isDirectory:&isDir];
+			if( isDir ){
+				[addonList addObject:[[OfAddon alloc] initWithName:addon isLocal:local]];
+			}
+		}
+		return addonList;
+	};
+	
+	NSMutableArray * arr = [[NSMutableArray alloc] init];
+	[arr addObjectsFromArray:scan(NO)];
+	[arr addObjectsFromArray:scan(YES)];
+	
+	return arr;
+}
+
+- (void)addAddonNamed:(NSString *)name{
 	// great! now figure out what to add...
-	NSString * addonPath = [self.addonsPath stringByAppendingPathComponent:addonName];
+	OfAddon * addon = [addons objectForKey:name];
+	if(addon == nil){
+		NSLog(@"not adding addon %@, unknown addon. ", name); // addadadadadad
+		return;
+	}
+	else{
+		[self addAddon:addon];
+	}
+}
+
+- (void)addAddon:(OfAddon*)addon{
+	NSString * addonPath = [self.projPath stringByAppendingPathComponent:addon.relativePath].stringByStandardizingPath;
 	
 	// create a new group for the addon...
-	XCGroup * addonGroup = [self getOrCreateAddonGroup:addonName];
+	XCGroup * addonGroup = [self getOrCreateAddonGroup:addon];
 	
 	// =======================================
 	// 1.1 add the source folder recursively
@@ -228,10 +292,10 @@
 		NSString * relativePath = [path substringFromIndex:addonPath.length+1];
 		NSArray * components = [relativePath pathComponents];
 		if( components.count == 3 && [components[2] isEqualToString:@"include"] ){
-			[includePaths addObject:[NSString stringWithFormat:@"../../../addons/%@/%@", addonName, relativePath]];
+			[includePaths addObject:[NSString stringWithFormat:@"%@/%@", addon.relativePath, relativePath]];
 		}
 		if( components.count == 3 && [components[2] isEqualToString:@"src"] ){
-			[includePaths addObject:[NSString stringWithFormat:@"../../../addons/%@/%@", addonName, relativePath]];
+			[includePaths addObject:[NSString stringWithFormat:@"%@/%@", addon.relativePath, relativePath]];
 			[self addDirRecursively:relativePath addonPath:addonPath toGroup:addonGroup];
 		}
 	}
@@ -290,17 +354,17 @@
 			// ignore, not inside the osx subfolder
 		}
 		else if( [[path pathExtension] isEqualToString:@"a"] ){
-			[staticLibs addObject:[NSString stringWithFormat:@"../../../addons/%@/%@", addonName, relativePath]];
+			[staticLibs addObject:[NSString stringWithFormat:@"%@/%@", addon.relativePath, relativePath]];
 		}
 		else if( [[path pathExtension] isEqualToString:@"dylib"] ){
 			NSDictionary * attributes = [[NSFileManager defaultManager] attributesOfItemAtPath:path error:nil];
 			if( [[attributes valueForKey:@"NSFileType"] isEqualToString:NSFileTypeSymbolicLink] ){
 				// skip, those aren't needed?
 				// actually: don't skip those, they seem to be important in some cases! 
-				[dyLibs addObject:[NSString stringWithFormat:@"../../../addons/%@/%@", addonName, relativePath]];
+				[dyLibs addObject:[NSString stringWithFormat:@"%@/%@", addon.relativePath, relativePath]];
 			}
 			else{
-				[dyLibs addObject:[NSString stringWithFormat:@"../../../addons/%@/%@", addonName, relativePath]];
+				[dyLibs addObject:[NSString stringWithFormat:@"%@/%@", addon.relativePath, relativePath]];
 			}
 		}
 	}
@@ -346,7 +410,7 @@
 		// and echo -n is used to generate a 0-return code
 		//TODO: this is not ideal, it masks actual errors!
 		
-		NSString * copyCommand = [NSString stringWithFormat:@"cp -fR %@ \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/MacOS\" 2>/dev/null | echo -n", dyLib];
+		NSString * copyCommand = [NSString stringWithFormat:@"rsync -aved %@ \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/MacOS\"", dyLib];
 		[self addToScriptsPhase:copyCommand];
 	}
 	
@@ -359,7 +423,7 @@
 	NSString * dataPath = [addonPath stringByAppendingPathComponent:@"bin/data"];
 	BOOL hasDataFolder = [[NSFileManager defaultManager] fileExistsAtPath:dataPath];
 	if( hasDataFolder ){
-		NSString * copyCommand = [NSString stringWithFormat:@"cp -rf ../../../addons/%@/bin/data/ \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Resources\"", addonName];
+		NSString * copyCommand = [NSString stringWithFormat:@"rsync -aved %@/bin/data/ \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Resources\"", addon.relativePath];
 		[self addToScriptsPhase:copyCommand];
 	}
 }
@@ -394,7 +458,6 @@
 										 options:0
 										 errorHandler:^(NSURL *url, NSError *error) {return YES;
 										 }];
-	
 	for( NSURL * url in enumerator ){
 		NSString * path = [url path];
 		NSString * relativePath = [path substringFromIndex:addonPath.length+1];
@@ -446,17 +509,31 @@
 	return group;
 }
 
-- (XCGroup*) getOrCreateAddonGroup: (NSString*) addonName{
-	NSString * groupKeyPath = [NSString stringWithFormat:@"addons/%@", addonName];
+- (XCGroup*) getOrCreateAddonGroup: (OfAddon*)addon{
+	NSString * groupName = addon.isLocal?@"local_addons":@"addons";
+	NSString * groupKeyPath = [NSString stringWithFormat:@"%@/%@", groupName, addon.name];
 	NSString* groupKey = [[XCKeyBuilder forItemNamed:groupKeyPath] build];
 	
 	XCGroup * group = [self.project groupWithPathFromRoot:groupKeyPath];
 	if( group == nil ){
-		XCGroup * addonGroup = [self.project groupWithPathFromRoot:@"addons"];
+		XCGroup * addonGroup = [self.project groupWithPathFromRoot:groupName];
+		if(addonGroup == nil){
+			XCGroup * root = [self.project rootGroup];
+			NSString * addonsKey = [[XCKeyBuilder forItemNamed:groupName] build]; 
+			//NSString * relGroupPath = [addon.relativePath stringByDeletingLastPathComponent];
+			addonGroup = [[XCGroup alloc] initWithProject:self.project key:addonsKey alias:groupName path:@"" children:nil];
+			NSDictionary* groupDict = [addonGroup asDictionary];
+			
+			[self.project objects][addonsKey] = groupDict;
+			[root addMemberWithKey:addonsKey];
+			
+			NSDictionary* dict = [root asDictionary];
+			[self.project objects][root.key] = dict;
+		}
 		// we build this our selves,
 		// because the XcodeEditor library is cool, but not as cool as us!
-		NSString * relGroupPath = [NSString stringWithFormat:@"../../../addons/%@", addonName];
-		group = [[XCGroup alloc] initWithProject:self.project key:groupKey alias:addonName path:relGroupPath children:nil];
+		NSString * relGroupPath = addon.relativePath;
+		group = [[XCGroup alloc] initWithProject:self.project key:groupKey alias:addon.name path:relGroupPath children:nil];
 		NSDictionary* groupDict = [group asDictionary];
 		
 		[self.project objects][groupKey] = groupDict;
