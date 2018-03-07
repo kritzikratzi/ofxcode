@@ -59,6 +59,9 @@
 - (void)removeAddon:(OfAddon*)addon;
 - (void)removeAddonLocallyAndGlobally:(OfAddon*)addon;
 
+// removes and re-adds the sources folder, rebuilding all the groups in the project file
+- (void)updateSources; 
+
 
 // from here on it's private methods
 - (XCGroup*) addFileWithPath: (NSString*)relativePath toGroup:(XCGroup*)group;

@@ -8,6 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import "OfProject.h"
+#import <XcodeEditor/XcodeGroupMember.h>
 
 // accessing some private properties so that
 // we can create groups with relative locations (ie linking addons/abc to ../../../addons/abc)
@@ -197,6 +198,30 @@
 	removeCmd([NSString stringWithFormat:@"rsync -aved %@/", addon.relativePath]);
 	
 }
+
+- (void)updateSources{
+	XCGroup * srcGroup = [self.project groupWithPathFromRoot:@"src"];
+	
+	// in case we have group called "src", remove everything inside!
+	if(srcGroup != nil){
+/*		for(id src in srcGroup.members){
+			if([src isKindOfClass:XCGroup.class]){
+				NSLog(@"it's a group!");
+				XCGroup * group = src;
+				[group removeFromParentDeletingChildren:NO];
+			}
+			else{
+				XCSourceFile * file = src;
+				NSLog(@"f=%@", file); 
+			}
+		}*/
+		[srcGroup removeFromParentDeletingChildren:NO];
+	}
+
+	XCGroup * root = [self.project rootGroup];
+	[self addDirRecursively:@"src" addonPath:self.projPath toGroup:root];
+}
+
 
 - (NSArray*)valueAsArray:(id) value{
 	if( value == nil ){

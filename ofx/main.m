@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import "OfProject.h"
-#define VERSION_STRING "1.08"
+#define VERSION_STRING "1.09"
 
 @interface CLI : NSObject
 +(void) printUsage;
@@ -73,10 +73,23 @@ int main(int argc, const char * argv[]) {
 	NSMutableSet * projAddons = [CLI readAddonsMake:addonsMakeFile];
 
 	if( [command isEqualToString:@"sync"] ){
-		// update all addons as set by addons.make
-		for( NSString * addonName in projAddons ){
-			[proj removeAddonNamed:addonName];
-			[proj addAddonNamed:addonName];
+		bool updateSources = args.count==0;
+		bool updateAddons = args.count==0;
+		for(NSString * arg in args){
+			if([arg isEqualToString:@"src"]) updateSources = true;
+			else if([arg isEqualToString:@"addons"]) updateAddons = true;
+			else printf("Ignore argument: %s\n", arg.UTF8String);
+		}
+		
+		if(updateSources){
+			[proj updateSources];
+		}
+		if(updateAddons){
+			// update all addons as set by addons.make
+			for( NSString * addonName in projAddons ){
+				[proj removeAddonNamed:addonName];
+				[proj addAddonNamed:addonName];
+			}
 		}
 	}
 	else if( [command isEqualToString:@"add"] || [command isEqualToString:@"update"] ){
@@ -125,7 +138,7 @@ int main(int argc, const char * argv[]) {
 +(void) printUsage{
 	printf("ofxcode version %s\n", VERSION_STRING );
 	printf("Usage: ofxcode [project-file] (add|remove|update) addonName\n");
-	printf("or     ofxcode [project-file] sync\n\n");
+	printf("or     ofxcode [project-file] sync [src|addons]\n\n");
 	
 	printf("  project-file: Name of project file, e.g. emptyExample.xcodeproj\n" );
 	printf("                Optional. You'll be prompted to select the project file if there is more than one in the current folder. \n\n" );
@@ -133,7 +146,10 @@ int main(int argc, const char * argv[]) {
 	printf("  add|remove|update: Adds/removes an addon. This also changes addons.make\n" );
 	printf("  If no addon name is provided you will be asked to pick from a list. \n");
 	printf("  \n" );
-	printf("  sync: Remove all addons, and re-adds them based on addons.make\n\n");
+	printf("  sync: Synchronizes source folder and/or addons\n");
+	printf("        src: Only synchrones the src folder of the project\n");
+	printf("        addons: Only synchronizes addons (same as calling 'update' for each addon)\n");
+	printf("        Providing no extra argument synchronizes both sources and addons\n");
 }
 
 +(NSString*) findXcodeProjectFile{
