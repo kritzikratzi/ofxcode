@@ -47,7 +47,7 @@
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       launchStyle = "0"
       useCustomWorkingDirectory = "YES"
-      customWorkingDirectory = "/Users/hansi/Documents/OF/of_v0093_osx_release/apps/myApps/OsciStudio"
+      customWorkingDirectory = "/Users/hansi/Documents/OF/of_v0093_osx_release/apps/myApps/NetAudioPro"
       ignoresPersistentStateOnLaunch = "NO"
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
@@ -64,11 +64,11 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "sync"
+            argument = "add"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "src"
+            argument = "ofxBoostAsio"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import "OfProject.h"
-#define VERSION_STRING "1.09"
+#define VERSION_STRING "1.10"
 
 @interface CLI : NSObject
 +(void) printUsage;

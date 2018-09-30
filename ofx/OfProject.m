@@ -290,13 +290,19 @@
 
 - (void)addAddon:(OfAddon*)addon{
 	NSString * addonPath = [self.projPath stringByAppendingPathComponent:addon.relativePath].stringByStandardizingPath;
+
+	// we fill this in slowly over time
+	NSMutableSet * includePaths = [[NSMutableSet alloc] init];
 	
 	// create a new group for the addon...
 	XCGroup * addonGroup = [self getOrCreateAddonGroup:addon];
 	
 	// =======================================
-	// 1.1 add the source folder recursively
+	// 1.1 add the include and src folder recursively
 	// =======================================
+	if([self addDirRecursively:@"include" addonPath:addonPath toGroup:addonGroup]){
+		[includePaths addObject:[addon.relativePath stringByAppendingPathComponent:@"include"]];
+	}
 	[self addDirRecursively:@"src" addonPath:addonPath toGroup:addonGroup];
 	
 	// =====================================================
@@ -311,7 +317,6 @@
 										 }];
 	
 	// this is a bit wasteful, because we traverse everything, but only care about the include directory
-	NSMutableSet * includePaths = [[NSMutableSet alloc] init];
 	for( NSURL * url in enumerator ){
 		NSString * path = [url path];
 		NSString * relativePath = [path substringFromIndex:addonPath.length+1];
@@ -428,15 +433,8 @@
 	}
 	
 	// copy dylibs to final product
-	for( NSString * dyLib in dyLibs ){
-		// the "R" stands for recursive. only using it because it happens to copy symlinks.
-		// http://stackoverflow.com/a/221316/347508
-		// the 2>/dev/null is only to surpress the error status of copy if the file exists already.
-		// and echo -n is used to generate a 0-return code
-		//TODO: this is not ideal, it masks actual errors!
-		
-		NSString * copyCommand = [NSString stringWithFormat:@"rsync -aved %@ \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/MacOS\"", dyLib];
-		[self addToScriptsPhase:copyCommand];
+	for( NSString * dylib in dyLibs ){
+		[self addToCopyPhase:dylib addonPath:addonPath];
 	}
 	
 	
@@ -445,11 +443,23 @@
 	// =======================================
 	
 	// do we even have a data folder?
-	NSString * dataPath = [addonPath stringByAppendingPathComponent:@"bin/data"];
-	BOOL hasDataFolder = [[NSFileManager defaultManager] fileExistsAtPath:dataPath];
+	[self addToCopyPhase: [addonPath stringByAppendingPathComponent:@"data"] addonPath:addonPath];
+	[self addToCopyPhase: [addonPath stringByAppendingPathComponent:@"bin/data"] addonPath:addonPath];
+}
+
+/**
+ Check if the data folder exists. if yes,create a "copy scripts" phase for it.
+ **/
+- (BOOL) addToCopyPhase: (NSString*)absPath addonPath:(NSString*)addonPathAbs{
+	BOOL hasDataFolder = [[NSFileManager defaultManager] fileExistsAtPath:absPath];
 	if( hasDataFolder ){
-		NSString * copyCommand = [NSString stringWithFormat:@"rsync -aved %@/bin/data/ \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Resources\"", addon.relativePath];
+		NSString * relativePath = [absPath substringFromIndex:addonPathAbs.length+1];
+		NSString * copyCommand = [NSString stringWithFormat:@"rsync -aved %@ \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Resources\"", relativePath];
 		[self addToScriptsPhase:copyCommand];
+		return YES;
+	}
+	else{
+		return NO;
 	}
 }
 
@@ -475,8 +485,10 @@
 	}
 }
 
-- (XCGroup*) addDirRecursively:(NSString *)relativePath addonPath:(NSString*)addonPath toGroup:(XCGroup *)group{
+- (BOOL) addDirRecursively:(NSString *)relativePath addonPath:(NSString*)addonPath toGroup:(XCGroup *)group{
 	NSString * srcPath = [addonPath stringByAppendingPathComponent:relativePath];
+	if(![[NSFileManager defaultManager] fileExistsAtPath:srcPath]) return NO;
+	
 	NSDirectoryEnumerator *enumerator = [[NSFileManager defaultManager]
 										 enumeratorAtURL:[NSURL URLWithString:srcPath]
 										 includingPropertiesForKeys:nil
@@ -489,7 +501,7 @@
 		[self addFileWithPath:relativePath toGroup:group];
 	}
 	
-	return group; 
+	return YES;
 }
 
 - (XCGroup*) addFileWithPath: (NSString*) relativePath toGroup:(XCGroup*)group{

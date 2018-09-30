@@ -65,7 +65,7 @@
 
 // from here on it's private methods
 - (XCGroup*) addFileWithPath: (NSString*)relativePath toGroup:(XCGroup*)group;
-- (XCGroup*) addDirRecursively: (NSString*)relativePath addonPath:(NSString*)addonPath toGroup:(XCGroup*)group;
+- (BOOL) addDirRecursively: (NSString*)relativePath addonPath:(NSString*)addonPath toGroup:(XCGroup*)group;
 - (XCGroup*) getOrCreateAddonGroup: (OfAddon*)addon;
 
 - (BOOL) isDirectory:(NSString*)path;
